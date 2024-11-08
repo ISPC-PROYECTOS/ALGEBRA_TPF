@@ -1,57 +1,48 @@
-import pandas as pd
-import numpy as np
 import random
+import pandas as pd
 from datetime import datetime, timedelta
 
-# Establecer semilla para resultados reproducibles
-random.seed(42)
+# Listas de productos y presentaciones para elegir aleatoriamente
+productos = ["HARINA INTEGRAL", "NUECES", "ALMOHADITAS FRUTILLA", "PIMENTON DULCE", "LENTEJAS", "QUINOA"]
+presentaciones = ["1 kg", "500 g", "250 g", "300 g"]
+precios = {"HARINA INTEGRAL": 2200.00, "NUECES": 300.00, "ALMOHADITAS FRUTILLA": 400.00, 
+           "PIMENTON DULCE": 120.00, "LENTEJAS": 300.00, "QUINOA": 600.00}
 
-# Definir los productos y sus precios
-productos = ['HARINA INTEGRAL', 'LENTEJAS', 'ALMOHADITAS FRUTILLA', 'NUECES', 'QUINOA', 'PIMENTON DULCE']
-presentaciones = ['500 g', '1 kg', '250 g', '300 g', '500 ml', '1 L']
-precios = {'HARINA INTEGRAL': 2200.00, 'LENTEJAS': 300.00, 'ALMOHADITAS FRUTILLA': 400, 
-           'NUECES': 300.00, 'QUINOA': 600.00, 'PIMENTON DULCE': 120.00}
+# Función para generar una fecha aleatoria dentro de un rango de fechas
+def generar_fecha_aleatoria(inicio, fin):
+    delta = fin - inicio
+    random_day = random.randint(0, delta.days)
+    return inicio + timedelta(days=random_day)
 
-# Generar fechas de ejemplo (de febrero de 2023)
-fechas = pd.date_range(start='2023-02-01', end='2023-02-05', freq='D')
+# Función para generar hora aleatoria
+def generar_hora_aleatoria():
+    return f"{random.randint(0, 23):02d}.{random.randint(0, 59):02d}.00"
 
-# Crear lista para almacenar los registros
-datos = []
+# Generación de datos
+def generar_datos_ventas(n):
+    ventas = []
+    fecha_inicio = datetime(2023, 2, 1)
+    fecha_fin = datetime(2023, 2, 12)
 
-# Generar datos aleatorios
-for i in range(1, 31):  # 30 registros para simular 5 días de ventas
-    for fecha in fechas:
-        # Generar hora aleatoria entre 08:00 y 20:00
-        hora = f'{random.randint(8, 20)}:{random.randint(0, 59):02d}:00'
-        
-        # Seleccionar producto, cantidad y presentación
-        nombre_producto = random.choice(productos)
-        cantidad_producto = random.randint(1, 5)
+    for i in range(1, n+1):
+        fecha = generar_fecha_aleatoria(fecha_inicio, fecha_fin).strftime("%Y.%m.%d")
+        hora = generar_hora_aleatoria()
+        cantidad_art = random.randint(1, 5)
+        nombre_art = random.choice(productos)
         presentacion = random.choice(presentaciones)
-        precio = precios[nombre_producto]
-        
-        # Calcular el total de la venta
-        total_venta = cantidad_producto * precio
-        
-        # Crear el registro
-        registro = {
-            'id': i,
-            'fecha': fecha.strftime('%Y-%m-%d'),
-            'hora': hora,
-            'cantidad_art': cantidad_producto,
-            'nombre_art': nombre_producto,
-            'presentacion': presentacion,
-            'precio': precio,
-            'total_venta': total_venta
-        }
-        
-        # Agregar a la lista de datos
-        datos.append(registro)
+        precio = precios[nombre_art]
+        total_venta = cantidad_art * precio
+        ventas.append([i, fecha, hora, cantidad_art, nombre_art, presentacion, precio, total_venta])
+    
+    # Crear un DataFrame con los datos generados
+    df = pd.DataFrame(ventas, columns=["id", "fecha", "hora", "cantidad_art", "nombre_art", "presentacion", "precio", "total_venta"])
+    return df
 
-# Crear DataFrame de Pandas con los datos generados
-df = pd.DataFrame(datos)
+# Generar los datos de ventas
+df_ventas = generar_datos_ventas(1944)
 
-# Guardar el DataFrame en un archivo CSV
-df.to_csv('ventas_simuladas.csv', index=False)
+# Guardar el DataFrame a un archivo CSV
+df_ventas.to_csv("ventas_diarias_prueba.csv", index=False)
 
-print("Archivo CSV 'ventas_simuladas.csv' generado correctamente.")
+# Mostrar los primeros registros generados
+print(df_ventas.head())
